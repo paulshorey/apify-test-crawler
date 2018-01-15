@@ -1,0 +1,31 @@
+.board {
+  display:flex;
+  margin:12.5px;
+}
+
+.column_container {
+  flex-grow:1;
+}
+.column {
+  margin: 12.5px;
+}
+.title {
+  color:white;
+  padding:1rem;
+}
+
+.task {
+  display:flex;
+}
+.text {
+  font-size:0.8rem;
+  flex-grow:1;
+  margin: 1rem 0;
+}
+.arrow {
+  color:grey; 
+  margin:1rem; 
+  width: 1rem;
+  height: 1rem;}
+.arrow.arrow-left {margin-left:0;}
+.arrow.arrow-right {margin-right:0;}
