@@ -9,45 +9,61 @@ class App extends Component {
 	constructor(){
 		super();
 		this.state = {
+			crawlerTestingId: "Pyt5FfSoGCRRCNtqY",
+			crawlerEndpoints: {
+				get:"http://api.allevents.nyc/apify/v1/crawlerGet",
+				update:"http://api.allevents.nyc/apify/v1/crawlerUpdateExecute"
+			},
 			crawler: {
-				"crawler": {
-					startUrls: [
-						{
-						"key": "START",
-						"value": "http://paulshorey.com"
-						}
-					],
-					pageFunction: "function(context) { return context.finish({title:document.title,items:[{title:'Hello2',body:'<p>Whatever2</p>'}]});}"
-				}
+				startUrls: [
+					{
+						key:"",
+						value:""
+					}
+				],
+				pageFunction: ""
 			},
 			scraped: {}
 		};
-		this.testCrawler();
-	}
-	testCrawler=()=>{
-		/*
-			POST JSON to API to update crawler and get back response.body.resultsUrl
-		*/
-		var crawlerApiEndpoint = 'http://api.allevents.nyc/apify/v1/crawler';
-		// initiate crawl
-		fetch(crawlerApiEndpoint,
-		{
-			method: 'post',
+		fetch(this.state.crawlerEndpoints.get+"?_id="+this.state.crawlerTestingId,{
 			headers: {
-			'Accept': 'application/json, text/plain, */*',
-			'Content-Type': 'application/json'
+				"Accept": "application/json, text/plain, */*",
+				"Content-Type": "application/json"
+			}
+		})
+		.then((response)=>{
+			response.json().then((data)=>{
+					// view
+					this.setState({crawler: data.body});
+			});
+		});
+	}
+	updateExecuteCrawler=()=>{
+		var crawler = {
+			crawler: {
+				startUrls: this.state.crawler.startUrls,
+				pageFunction: this.state.crawler.pageFunction
+			}
+		};
+		// initiate crawl
+		fetch(this.state.crawlerEndpoints.update,
+		{
+			method: "post",
+			headers: {
+				"Accept": "application/json, text/plain, */*",
+				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(this.state.crawler)
+			body: JSON.stringify(crawler)
 		})
 		.then((response)=>{
 			response.json().then((data)=>{
 				// get crawl data
 				var resultsInterval = setInterval(()=>{
-					console.log('interval '+data.body.resultsUrl+'...');
+					console.log("interval "+data.body.resultsUrl+"...");
 					fetch(data.body.resultsUrl,{
 						headers: {
-							'Accept': 'application/json, text/plain, */*',
-							'Content-Type': 'application/json'
+							"Accept": "application/json, text/plain, */*",
+							"Content-Type": "application/json"
 						}
 					})
 					.then((response)=>{
@@ -55,7 +71,7 @@ class App extends Component {
 							if (resultsInterval && data[0] && data[0].pageFunctionResult) {
 								// view
 								this.setState({scraped:data[0].pageFunctionResult});
-								console.log('new results:',data[0]);
+								console.log("new results:",data[0]);
 								// cleanup
 								clearInterval(resultsInterval);
 								resultsInterval = null;
@@ -67,20 +83,28 @@ class App extends Component {
 			});
 		})
 		.catch(function(error) {
-			console.log('fetch error!',error);
+			console.log("fetch error!",error);
 		});
 	}
-	updateCode=(newCode)=>{
+	updatePageFunctionCodeMirror=(newCode)=>{
 		var newCrawler = this.state.crawler;
-		newCrawler.crawler.pageFunction = newCode;
+		newCrawler.pageFunction = newCode;
+		this.setState({
+			crawler: newCrawler
+		});
+	}
+	updatePageFunction=(event)=>{
+		console.log("newPageFunction",event.target.value);
+		var newCrawler = this.state.crawler;
+		newCrawler.pageFunction = event.target.value;
 		this.setState({
 			crawler: newCrawler
 		});
 	}
 	updateUrl=(event)=>{
-		console.log('newUrl',event.target.value);
+		console.log("newUrl",event.target.value);
 		var newCrawler = this.state.crawler;
-		newCrawler.crawler.startUrls[0].value = event.target.value;
+		newCrawler.startUrls[0].value = event.target.value;
 		this.setState({
 			crawler: newCrawler
 		});
@@ -95,15 +119,13 @@ class App extends Component {
 		return ScrapedItems;
 	}
 	render() {
-		var options = {
-			lineNumbers: true,
-		};
 		return (
 			<div>
 				<div>
-					<input value={this.state.crawler.crawler.startUrls[0].value} onChange={this.updateUrl} type="text" />
-					<CodeMirror value={this.state.crawler.crawler.pageFunction} onChange={this.updateCode} options={options} />
-					<button type="button" onClick={this.testCrawler}>Crawl</button>
+					<input value={this.state.crawler.startUrls[0].value} onChange={this.updateUrl} type="text" />
+					<p><b>{this.state.crawler.pageFunction}</b></p>
+					<CodeMirror  key={this.state.crawler.pageFunction} value={this.state.crawler.pageFunction} onChange={this.updatePageFunctionCodeMirror} options={{lineNumbers:true}} />
+					<button type="button" onClick={this.updateExecuteCrawler}>Crawl</button>
 				</div>
 				<div>
 					{this.state.scraped.title}
