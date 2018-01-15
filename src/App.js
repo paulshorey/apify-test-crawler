@@ -11,8 +11,6 @@ class App extends Component {
 		this.state = {
 			crawler: {
 				"crawler": {
-					"customId": "My_crawler_paulshorey_05",
-					"comments": "My testing crawler",
 					startUrls: [
 						{
 						"key": "START",
@@ -79,6 +77,14 @@ class App extends Component {
 			crawler: newCrawler
 		});
 	}
+	updateUrl=(event)=>{
+		console.log('newUrl',event.target.value);
+		var newCrawler = this.state.crawler;
+		newCrawler.crawler.startUrls[0].value = event.target.value;
+		this.setState({
+			crawler: newCrawler
+		});
+	}
 	renderResults=()=>{
 		const ScrapedItems = [];
 		if (Array.isArray(this.state.scraped.items)) {
@@ -92,15 +98,19 @@ class App extends Component {
 		var options = {
 			lineNumbers: true,
 		};
-		return ([
+		return (
 			<div>
-				<CodeMirror value={this.state.crawler.crawler.pageFunction} onChange={this.updateCode} options={options} />
-			</div>,
-			<div>
-				{this.state.scraped.title}
-				{this.renderResults()}
+				<div>
+					<input value={this.state.crawler.crawler.startUrls[0].value} onChange={this.updateUrl} type="text" />
+					<CodeMirror value={this.state.crawler.crawler.pageFunction} onChange={this.updateCode} options={options} />
+					<button type="button" onClick={this.testCrawler}>Crawl</button>
+				</div>
+				<div>
+					{this.state.scraped.title}
+					{this.renderResults()}
+				</div>
 			</div>
-		]);
+		);
 	}
 }
 
